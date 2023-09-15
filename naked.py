@@ -15,7 +15,7 @@ VISIBILITY = 60
 # In days - how far into the future to predict ISS passovers, MAX = 10.
 DAYS = 10
 
-# Prepares appended string to URL to get visual passes
+# Prepares and requests URL to get visual passes
 def get_visual_passes():
     url = f"{BASE_URL}visualpasses/{SATELLITE_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
     response = requests.get(url)
