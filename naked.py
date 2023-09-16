@@ -12,14 +12,16 @@ BASE_URL = 'https://api.n2yo.com/rest/v1/satellite/'
 # Norad id for satellite. 25544 = ISS
 SATELLITE_ID = 25544
 # Observer data: decimal degrees - latitude, longitude; meters - elevation.
+# By default given coordinates of ViA university
 LAT = 57.54161
 LON = 25.42826
-ALT = 0
+ALT = 45
 # In seconds - length of time while satellite is visible in the sky
 VISIBILITY = 60
 # In days - how far into the future to predict ISS passovers, MAX = 10.
 DAYS = 10
 
+# Check if internet connection exists on device
 def check_internet_connection():
     while True:
         try:
@@ -36,6 +38,7 @@ def get_response():
     response = requests.get(url)
     return response
 
+# Check if URL response returned without error and return the json of response
 def check_response():
     response = get_response()
     if response.status_code != 200:
@@ -43,6 +46,7 @@ def check_response():
         sys.exit(1)
     return response.json()
 
+# Print out a list of satellite passes in a human readable format
 def print_passes():
     visual_pass_response_json = check_response()
     print("ISS will be visible at:")
