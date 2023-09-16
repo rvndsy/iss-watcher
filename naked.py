@@ -24,7 +24,6 @@ def check_internet_connection():
     while True:
         try:
             requests.get('https://www.google.com/').status_code
-            print("Internet connection exists!")
             break
         except:
             print("No internet connection!")
