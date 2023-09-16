@@ -1,0 +1,11 @@
+[n2yo]
+api_key = A1B2C3-D4E5F6-G7H8I9-1234
+api_url = https://api.n2yo.com/rest/v1/satellite/
+
+[user]
+norad_id = 25544
+latitude = 57.54161
+longitude = 25.42826
+altitude = 45
+visibility = 60
+prediction_days = 10
