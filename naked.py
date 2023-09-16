@@ -1,7 +1,7 @@
 import requests
 import json
 import sys
-import datetime
+import datetime, time
 from datetime import datetime
 
 # Replace 'abcd-qwer-asdf' with your personal API key
@@ -19,6 +19,17 @@ ALT = 0
 VISIBILITY = 60
 # In days - how far into the future to predict ISS passovers, MAX = 10.
 DAYS = 10
+
+def check_internet_connection():
+    while True:
+        try:
+            requests.get('https://www.google.com/').status_code
+            print("Internet connection exists!")
+            break
+        except:
+            print("No internet connection!")
+            time.sleep(5)
+            pass
 
 # Prepares and requests URL to get visual passes
 def get_visual_passes_response():
@@ -41,7 +52,7 @@ def print_passes():
         print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")
 
 if __name__ == "__main__":
- 
+    check_internet_connection()
     ## Get visual passes for ISS. Print out received information.
     # visual_passes_response = get_visual_passes()
     print("\nVisual Passes Response:")
