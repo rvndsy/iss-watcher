@@ -1,5 +1,7 @@
 import requests
 import json
+import sys
+import datetime
 from datetime import datetime
 
 # Replace 'abcd-qwer-asdf' with your personal API key
@@ -19,22 +21,29 @@ VISIBILITY = 60
 DAYS = 10
 
 # Prepares and requests URL to get visual passes
-def get_visual_passes():
+def get_visual_passes_response():
     url = f"{BASE_URL}visualpasses/{SATELLITE_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
     response = requests.get(url)
-    return response.json()
+    return response
+
+def check_visual_passes_response():
+    visual_passes_response = get_visual_passes_response()
+    if visual_passes_response.status_code != 200:
+        print("Error code", visual_passes_response.status_code, "from API URL")
+        sys.exit(1)
+    return visual_passes_response.json()
 
 def print_passes():
-    data = get_visual_passes()
+    visual_pass_response_json = check_visual_passes_response()
     print("ISS will be visible at:")
-    for event in data['passes']:
+    for event in visual_pass_response_json['passes']:
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
         print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")
 
 if __name__ == "__main__":
  
-    # Get visual passes for ISS. Print out received information.
-    visual_passes_response = get_visual_passes()
+    ## Get visual passes for ISS. Print out received information.
+    # visual_passes_response = get_visual_passes()
     print("\nVisual Passes Response:")
-    print(visual_passes_response, "\n")
+    # print(visual_passes_response, "\n")
     print_passes()
