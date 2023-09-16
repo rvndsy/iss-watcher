@@ -14,33 +14,19 @@ try:
     API_KEY = config.get('n2yo', 'api_key')
     API_URL = config.get('n2yo', 'api_url')
 
+    # Norad id for satellite. 25544 = ISS
     NORAD_ID = config.get('user', 'norad_id')
+    # Observer data: decimal degrees - latitude, longitude; meters - elevation. Default is ViA university.
     LAT = config.get('user', 'latitude')
     LON = config.get('user', 'longitude')
     ALT = config.get('user', 'altitude')
+    # In seconds - length of time while satellite is visible in the sky
     VISIBILITY = config.get('user', 'visibility')
+    # In days - how far into the future to predict ISS passovers, MAX = 10.
     DAYS = config.get('user', 'prediction_days')
 except:
     print('Exception error in loading config')
 print('DONE')
-
-## Replace 'abcd-qwer-asdf' with your personal API key
-# API_KEY = 'abcd-qwer-asdf'
-
-## Base URL for N2YO API
-# API_URL = 'https://api.n2yo.com/rest/v1/satellite/'
-
-## Norad id for satellite. 25544 = ISS
-# SATELLITE_ID = 25544
-## Observer data: decimal degrees - latitude, longitude; meters - elevation.
-## By default given coordinates of ViA university
-# LAT = 57.54161
-# LON = 25.42826
-# ALT = 45
-## In seconds - length of time while satellite is visible in the sky
-# VISIBILITY = 60
-## In days - how far into the future to predict ISS passovers, MAX = 10.
-# DAYS = 10
 
 # Check if internet connection exists on device
 def check_internet_connection():
