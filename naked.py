@@ -3,12 +3,25 @@ import json
 import sys
 import datetime, time
 from datetime import datetime
+from configparser import ConfigParser
 
-# Replace 'abcd-qwer-asdf' with your personal API key
-API_KEY = 'abcd-qwer-asdf'
+# Reading required values from config file
+print("Loading configuration from file")
+try:
+    config = ConfigParser()
+    config.read('config.ini')
+    
+    API_KEY = config.get('n2yo', 'api_key')
+    API_URL = config.get('n2yo', 'api_url')
+except:
+    print('Exception error in loading config')
+print('DONE')
 
-# Base URL for N2YO API
-BASE_URL = 'https://api.n2yo.com/rest/v1/satellite/'
+## Replace 'abcd-qwer-asdf' with your personal API key
+# API_KEY = 'abcd-qwer-asdf'
+
+## Base URL for N2YO API
+# API_URL = 'https://api.n2yo.com/rest/v1/satellite/'
 # Norad id for satellite. 25544 = ISS
 SATELLITE_ID = 25544
 # Observer data: decimal degrees - latitude, longitude; meters - elevation.
@@ -34,7 +47,7 @@ def check_internet_connection():
 
 # Prepares and requests URL to get visual passes
 def get_response():
-    url = f"{BASE_URL}visualpasses/{SATELLITE_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
+    url = f"{API_URL}visualpasses/{SATELLITE_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
     response = requests.get(url)
     return response
 
