@@ -13,6 +13,13 @@ try:
     
     API_KEY = config.get('n2yo', 'api_key')
     API_URL = config.get('n2yo', 'api_url')
+
+    NORAD_ID = config.get('user', 'norad_id')
+    LAT = config.get('user', 'latitude')
+    LON = config.get('user', 'longitude')
+    ALT = config.get('user', 'altitude')
+    VISIBILITY = config.get('user', 'visibility')
+    DAYS = config.get('user', 'prediction_days')
 except:
     print('Exception error in loading config')
 print('DONE')
@@ -22,17 +29,18 @@ print('DONE')
 
 ## Base URL for N2YO API
 # API_URL = 'https://api.n2yo.com/rest/v1/satellite/'
-# Norad id for satellite. 25544 = ISS
-SATELLITE_ID = 25544
-# Observer data: decimal degrees - latitude, longitude; meters - elevation.
-# By default given coordinates of ViA university
-LAT = 57.54161
-LON = 25.42826
-ALT = 45
-# In seconds - length of time while satellite is visible in the sky
-VISIBILITY = 60
-# In days - how far into the future to predict ISS passovers, MAX = 10.
-DAYS = 10
+
+## Norad id for satellite. 25544 = ISS
+# SATELLITE_ID = 25544
+## Observer data: decimal degrees - latitude, longitude; meters - elevation.
+## By default given coordinates of ViA university
+# LAT = 57.54161
+# LON = 25.42826
+# ALT = 45
+## In seconds - length of time while satellite is visible in the sky
+# VISIBILITY = 60
+## In days - how far into the future to predict ISS passovers, MAX = 10.
+# DAYS = 10
 
 # Check if internet connection exists on device
 def check_internet_connection():
@@ -47,7 +55,7 @@ def check_internet_connection():
 
 # Prepares and requests URL to get visual passes
 def get_response():
-    url = f"{API_URL}visualpasses/{SATELLITE_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
+    url = f"{API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
     response = requests.get(url)
     return response
 
