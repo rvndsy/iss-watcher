@@ -31,20 +31,20 @@ def check_internet_connection():
             pass
 
 # Prepares and requests URL to get visual passes
-def get_visual_passes_response():
+def get_response():
     url = f"{BASE_URL}visualpasses/{SATELLITE_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
     response = requests.get(url)
     return response
 
-def check_visual_passes_response():
-    visual_passes_response = get_visual_passes_response()
-    if visual_passes_response.status_code != 200:
-        print("Error code", visual_passes_response.status_code, "from API URL")
+def check_response():
+    response = get_response()
+    if response.status_code != 200:
+        print("Error code", response.status_code, "from API URL")
         sys.exit(1)
-    return visual_passes_response.json()
+    return response.json()
 
 def print_passes():
-    visual_pass_response_json = check_visual_passes_response()
+    visual_pass_response_json = check_response()
     print("ISS will be visible at:")
     for event in visual_pass_response_json['passes']:
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
@@ -53,7 +53,7 @@ def print_passes():
 if __name__ == "__main__":
     check_internet_connection()
     ## Get visual passes for ISS. Print out received information.
-    # visual_passes_response = get_visual_passes()
+    # response = get_response()
     print("\nVisual Passes Response:")
-    # print(visual_passes_response, "\n")
+    # print(response, "\n")
     print_passes()
