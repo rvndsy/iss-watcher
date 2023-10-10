@@ -39,8 +39,8 @@ def check_internet_connection():
             time.sleep(5)
             pass
 
-# Prepares and requests URL to get visual passes
-def get_response():
+# Prepares and requests URL to get visual passes from n2yo
+def get_n2yo_response():
     url = f"{API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
     response = requests.get(url)
     return response
