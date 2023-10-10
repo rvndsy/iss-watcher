@@ -18,7 +18,7 @@ try:
     OSM_JSON_VER = config.get('osm', 'api_json_ver')
     # Norad id for satellite. 25544 = ISS
     NORAD_ID = config.get('user', 'norad_id')
-    # Observer data: decimal degrees - latitude, longitude; meters - elevation. Default is ViA university.
+    # Observer data: decimal degrees - LATitude, LONgitude; meters - elevation. Default is ViA university.
     LAT = config.get('user', 'latitude')
     LON = config.get('user', 'longitude')
     ALT = config.get('user', 'altitude')
@@ -44,17 +44,19 @@ def check_internet_connection():
 # Prepares and requests URL to get visual passes from n2yo
 def get_n2yo_response():
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
+    print("N2YO url:", url)
     response = requests.get(url)
     return response
 
-def get_osm_search_respone(placeName):
+def get_osm_search_response(placeName):
     url = f"{OSM_API_URL}search.php?q={placeName}&format={OSM_JSON_VER}"
-    respone = requests.get(url)
+    print("OSM url:", url)
+    response = requests.get(url)
     return response
 
 # Check if URL response returned without error and return the json of response
-def check_response():
-    response = get_response()
+def check_n2yo_response():
+    response = get_n2yo_response()
     if response.status_code != 200:
         print("Error code", response.status_code, "from API URL")
         sys.exit(1)
@@ -62,9 +64,9 @@ def check_response():
 
 # Print out a list of satellite passes in a human readable format
 def print_passes():
-    visual_pass_response_json = get_n2yo_response()
+    visual_pass_response_json = check_n2yo_response()
     # Check for 0 visual passes at location
-    if visual_pass_response_json['info']['passescount'] == 0:
+    if 'info' in visual_pass_response_json and visual_pass_response_json['info']['passescount'] == 0:
         print("No visual passes found at location for now!")
         return
     # Print all visible passes
@@ -80,4 +82,4 @@ if __name__ == "__main__":
     print("\nVisual Passes Response:")
     # print(response, "\n")
     print_passes()
-    print(get_n2yo_response(Valmiera))
+    print(get_osm_search_response("Valmiera"))
