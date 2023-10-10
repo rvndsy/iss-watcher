@@ -56,6 +56,9 @@ def check_response():
 # Print out a list of satellite passes in a human readable format
 def print_passes():
     visual_pass_response_json = check_response()
+    if visual_pass_response_json['info']['passescount'] == 0:
+        print("No visual passes found at location for now!")
+        return
     print("ISS will be visible at:")
     for event in visual_pass_response_json['passes']:
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
