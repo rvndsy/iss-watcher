@@ -2,6 +2,10 @@
 api_key = A1B2C3-D4E5F6-G7H8I9-1234
 api_url = https://api.n2yo.com/rest/v1/satellite/
 
+[osm]
+api_url = https://nominatim.openstreetmap.org/
+api_json_ver = jsonv2
+
 [user]
 norad_id = 25544
 latitude = 57.54161
