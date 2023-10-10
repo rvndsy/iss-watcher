@@ -11,9 +11,11 @@ try:
     config = ConfigParser()
     config.read('config.ini')
     
-    API_KEY = config.get('n2yo', 'api_key')
-    API_URL = config.get('n2yo', 'api_url')
+    N2YO_API_KEY = config.get('n2yo', 'api_key')
+    N2YO_API_URL = config.get('n2yo', 'api_url')
 
+    OSM_API_URL = config.get('osm', 'api_url')
+    OSM_JSON_VER = config.get('osm', 'api_json_ver')
     # Norad id for satellite. 25544 = ISS
     NORAD_ID = config.get('user', 'norad_id')
     # Observer data: decimal degrees - latitude, longitude; meters - elevation. Default is ViA university.
@@ -41,8 +43,13 @@ def check_internet_connection():
 
 # Prepares and requests URL to get visual passes from n2yo
 def get_n2yo_response():
-    url = f"{API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={API_KEY}"
+    url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
     response = requests.get(url)
+    return response
+
+def get_osm_search_respone(placeName):
+    url = f"{OSM_API_URL}search.php?q={placeName}&format={OSM_JSON_VER}"
+    respone = requests.get(url)
     return response
 
 # Check if URL response returned without error and return the json of response
@@ -55,7 +62,7 @@ def check_response():
 
 # Print out a list of satellite passes in a human readable format
 def print_passes():
-    visual_pass_response_json = check_response()
+    visual_pass_response_json = get_n2yo_response()
     # Check for 0 visual passes at location
     if visual_pass_response_json['info']['passescount'] == 0:
         print("No visual passes found at location for now!")
@@ -73,3 +80,4 @@ if __name__ == "__main__":
     print("\nVisual Passes Response:")
     # print(response, "\n")
     print_passes()
+    print(get_n2yo_response(Valmiera))
