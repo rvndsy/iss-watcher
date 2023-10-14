@@ -1,7 +1,7 @@
 import requests
 import json
 import sys
-import datetime, time
+import time
 from datetime import datetime
 from configparser import ConfigParser
 
@@ -42,21 +42,20 @@ def check_internet_connection():
             pass
 
 # Prepares and requests URL to get visual passes from n2yo
-def get_n2yo_response():
+def get_n2yo_response(lat=LAT, lon=LON):
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
     print("N2YO get_request url:", url)
     response = requests.get(url)
     return response
 
-def get_osm_search_response(placeName):
-    url = f"{OSM_API_URL}search.php?q={placeName}&format={OSM_JSON_VER}"
+def get_osm_search_response(place_name):
+    url = f"{OSM_API_URL}search.php?q={place_name}&format={OSM_JSON_VER}"
     print("OSM get_request url:", url)
     response = requests.get(url)
     return response
 
 # Check if URL response returned without error and return the json of response
-def check_n2yo_response():
-    response = get_n2yo_response()
+def check_n2yo_response(response):
     if response.status_code != 200:
         print("Error code", response.status_code, "from N2YO API URL")
         sys.exit(1)
@@ -66,7 +65,6 @@ def check_osm_response(response):
     if response.status_code != 200:
         print("Error code", response.status_code, "from OSM API URL")
         sys.exit(1)
-    print("Retrieved OSM response", response.json())
     return response.json()
 
 def get_osm_search_coords(response_json):
@@ -87,20 +85,19 @@ def get_osm_search_coords(response_json):
         except ValueError:
             print("Failed to convert lon to float")
         display_name = data.get('display_name', 'null')
-        return (display_name, lat, lon)
+        return (lat, lon, display_name)
     else:
         print("OSM response is empty")
     
 # Print out a list of satellite passes in a human readable format
-def print_passes():
-    visual_pass_response_json = check_n2yo_response()
+def print_passes(response_json, full_place_name):
     # Check for 0 visual passes at location
-    if 'info' in visual_pass_response_json and visual_pass_response_json['info']['passescount'] == 0:
+    if 'info' in response_json and response_json['info']['passescount'] == 0:
         print("No visual passes found at location for now!")
         return
     # Print all visible passes
-    print("ISS will be visible at:")
-    for event in visual_pass_response_json['passes']:
+    print(f"ISS will be visible at \"{full_place_name}\" at these times:")
+    for event in response_json['passes']:
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
         print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")
 
@@ -108,9 +105,12 @@ if __name__ == "__main__":
     check_internet_connection()
     ## Get visual passes for ISS. Print out received information.
     # response = get_response()
-    print("\nVisual Passes Response:")
     # print(response, "\n")
-    print_passes()
-    placeName = "Valmiera"
-    coords = get_osm_search_coords(check_osm_response(get_osm_search_response(placeName)))
-    print(coords, placeName)
+    place_name = "Valmiera"
+    print(f"Getting data from OSM for {place_name}")
+    coords = get_osm_search_coords(check_osm_response(get_osm_search_response(place_name)))
+    print(f"Getting data from N2YO for {place_name}")
+    n2yo_response = check_n2yo_response(get_n2yo_response(coords[0], coords[1]))
+    print("\nVisual Passes Response:")
+    print_passes(n2yo_response, coords[2])
+    # print(coords, place_name)
