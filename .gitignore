@@ -1,3 +1,4 @@
 config.ini
 confidential.txt
 log/*
+!log/.gitkeep
