@@ -62,13 +62,35 @@ def check_n2yo_response():
         sys.exit(1)
     return response.json()
 
-def check_osm_response(city):
-    response = get_osm_search_response(city)
+def check_osm_response(response):
     if response.status_code != 200:
         print("Error code", response.status_code, "from OSM API URL")
         sys.exit(1)
+    print("Retrieved OSM response", response.json())
     return response.json()
 
+def get_osm_search_coords(response_json):
+    display_name = None
+    lat = None
+    lon = None
+    if len(response_json) > 0:
+        data = response_json[0]
+        lat_str = data.get('lat', 'null')
+        lon_str = data.get('lon', 'null')
+        # Convert the lat & lon strings to floats
+        try:
+            lat = float(lat_str)
+        except ValueError:
+            print("Failed to convert lat to float")
+        try:
+            lon = float(lon_str)
+        except ValueError:
+            print("Failed to convert lon to float")
+        display_name = data.get('display_name', 'null')
+        return (display_name, lat, lon)
+    else:
+        print("OSM response is empty")
+    
 # Print out a list of satellite passes in a human readable format
 def print_passes():
     visual_pass_response_json = check_n2yo_response()
@@ -89,4 +111,6 @@ if __name__ == "__main__":
     print("\nVisual Passes Response:")
     # print(response, "\n")
     print_passes()
-    print(check_osm_response())
+    placeName = "Valmiera"
+    coords = get_osm_search_coords(check_osm_response(get_osm_search_response(placeName)))
+    print(coords, placeName)
