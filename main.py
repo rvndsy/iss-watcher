@@ -44,13 +44,13 @@ def check_internet_connection():
 # Prepares and requests URL to get visual passes from n2yo
 def get_n2yo_response():
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
-    print("N2YO url:", url)
+    print("N2YO get_request url:", url)
     response = requests.get(url)
     return response
 
 def get_osm_search_response(placeName):
     url = f"{OSM_API_URL}search.php?q={placeName}&format={OSM_JSON_VER}"
-    print("OSM url:", url)
+    print("OSM get_request url:", url)
     response = requests.get(url)
     return response
 
@@ -58,7 +58,14 @@ def get_osm_search_response(placeName):
 def check_n2yo_response():
     response = get_n2yo_response()
     if response.status_code != 200:
-        print("Error code", response.status_code, "from API URL")
+        print("Error code", response.status_code, "from N2YO API URL")
+        sys.exit(1)
+    return response.json()
+
+def check_osm_response(city):
+    response = get_osm_search_response(city)
+    if response.status_code != 200:
+        print("Error code", response.status_code, "from OSM API URL")
         sys.exit(1)
     return response.json()
 
@@ -82,4 +89,4 @@ if __name__ == "__main__":
     print("\nVisual Passes Response:")
     # print(response, "\n")
     print_passes()
-    print(get_osm_search_response("Valmiera"))
+    print(check_osm_response())
