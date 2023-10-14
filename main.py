@@ -10,7 +10,7 @@ from datetime import datetime
 from configparser import ConfigParser
 
 # Loading logging configuration
-with open('./log_worker.yaml.dev', 'r') as stream:
+with open('./log_main.yaml', 'r') as stream:
     config = yaml.safe_load(stream)
 logging.config.dictConfig(config)
 logger = logging.getLogger('root')
