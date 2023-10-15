@@ -14,7 +14,7 @@ with open('./log_main.yaml', 'r') as stream:
     config = yaml.safe_load(stream)
 logging.config.dictConfig(config)
 logger = logging.getLogger('root')
-logger.info('ISS flyover times at your location of choice!')
+logger.info("ISS flyover times at your location of choice!")
 
 # Reading required values from config file
 logger.info("Loading configuration from file")
