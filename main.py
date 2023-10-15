@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import mysql.connector
 import requests
 import json
 import sys
@@ -8,6 +9,30 @@ import yaml
 
 from datetime import datetime
 from configparser import ConfigParser
+from mysql.connector import Error
+
+#
+#   DB stuff:
+#
+
+def init_db():
+	global connection
+	connection = mysql.connector.connect(host=mysql_config_mysql_host, database=mysql_config_mysql_db, user=mysql_config_mysql_user, password=mysql_config_mysql_pass)
+
+def get_cursor():
+	global connection
+	try:
+		connection.ping(reconnect=True, attempts=1, delay=0)
+		connection.commit()
+	except mysql.connector.Error as err:
+		logger.error("No connection to db " + str(err))
+		connection = init_db()
+		connection.commit()
+	return connection.cursor()
+
+#
+#   URL getting and json processing:
+#
 
 # Check if internet connection exists on device
 def check_internet_connection():
@@ -17,8 +42,8 @@ def check_internet_connection():
             r = requests.get('https://www.google.com/').status_code
             break
         except:
-            logger.debug(f"https://www.google.com/ - status code: {r}")
-            logger.info("No internet connection!")
+            logger.info(f"https://www.google.com/ - status code: {r}")
+            logger.error("No internet connection!")
             time.sleep(5)
             pass
 
@@ -108,6 +133,11 @@ if __name__ == "__main__":
     try:
         config = ConfigParser()
         config.read('config.ini')
+
+        mysql_config_mysql_host = config.get('mysql_config', 'mysql_host')
+        mysql_config_mysql_db = config.get('mysql_config', 'mysql_db')
+        mysql_config_mysql_user = config.get('mysql_config', 'mysql_user')
+        mysql_config_mysql_pass = config.get('mysql_config', 'mysql_pass')
         
         N2YO_API_KEY = config.get('n2yo', 'api_key')
         N2YO_API_URL = config.get('n2yo', 'api_url')
@@ -133,6 +163,8 @@ if __name__ == "__main__":
     # response = get_response()
     # print(response, "\n")
 
+    init_db()
+    
     place_name = "Valmiera"
     
     if place_name == "":
