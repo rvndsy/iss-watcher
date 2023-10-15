@@ -9,38 +9,6 @@ import yaml
 from datetime import datetime
 from configparser import ConfigParser
 
-# Loading logging configuration
-with open('./log_main.yaml', 'r') as stream:
-    config = yaml.safe_load(stream)
-logging.config.dictConfig(config)
-logger = logging.getLogger('root')
-logger.info("ISS flyover times at your location of choice!")
-
-# Reading required values from config file
-logger.info("Loading configuration from file")
-try:
-    config = ConfigParser()
-    config.read('config.ini')
-    
-    N2YO_API_KEY = config.get('n2yo', 'api_key')
-    N2YO_API_URL = config.get('n2yo', 'api_url')
-
-    OSM_API_URL = config.get('osm', 'api_url')
-    OSM_JSON_VER = config.get('osm', 'api_json_ver')
-    # Norad id for satellite. 25544 = ISS
-    NORAD_ID = config.get('user', 'norad_id')
-    # Observer data: decimal degrees - LATitude, LONgitude; meters - elevation. Default is ViA university.
-    LAT = config.get('user', 'latitude')
-    LON = config.get('user', 'longitude')
-    ALT = config.get('user', 'altitude')
-    # In seconds - length of time while satellite is visible in the sky
-    VISIBILITY = config.get('user', 'visibility')
-    # In days - how far into the future to predict ISS passovers, MAX = 10.
-    DAYS = config.get('user', 'prediction_days')
-except:
-    logger.info('Exception error in loading config')
-logger.info('DONE')
-
 # Check if internet connection exists on device
 def check_internet_connection():
     r = None
@@ -55,7 +23,7 @@ def check_internet_connection():
             pass
 
 # Prepares and requests URL to get visual passes from n2yo
-def get_n2yo_response(lat=LAT, lon=LON):
+def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N2YO_API_KEY):
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
     logger.info(f"N2YO get_request url: {url}")
     response = requests.get(url)
@@ -127,17 +95,62 @@ def print_passes(response_json, full_place_name):
         print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")
 
 if __name__ == "__main__":
+
+    # Loading logging configuration
+    with open('./log_main.yaml', 'r') as stream:
+        config = yaml.safe_load(stream)
+    logging.config.dictConfig(config)
+    logger = logging.getLogger('root')
+    logger.info("ISS flyover times at your location of choice!")
+
+    # Reading required values from config file
+    logger.info("Loading configuration from file")
+    try:
+        config = ConfigParser()
+        config.read('config.ini')
+        
+        N2YO_API_KEY = config.get('n2yo', 'api_key')
+        N2YO_API_URL = config.get('n2yo', 'api_url')
+
+        OSM_API_URL = config.get('osm', 'api_url')
+        OSM_JSON_VER = config.get('osm', 'api_json_ver')
+        # Norad id for satellite. 25544 = ISS
+        NORAD_ID = config.get('user', 'norad_id')
+        # Observer data: decimal degrees - LATitude, LONgitude; meters - elevation. Default is ViA university.
+        LAT = config.get('user', 'latitude')
+        LON = config.get('user', 'longitude')
+        ALT = config.get('user', 'altitude')
+        # In seconds - length of time while satellite is visible in the sky
+        VISIBILITY = config.get('user', 'visibility')
+        # In days - how far into the future to predict ISS passovers, MAX = 10.
+        DAYS = config.get('user', 'prediction_days')
+    except:
+        logger.info('Exception error in loading config')
+    logger.info('DONE')
+
     check_internet_connection()
     ## Get visual passes for ISS. Print out received information.
     # response = get_response()
     # print(response, "\n")
+
     place_name = "Valmiera"
-    logger.info(f"Getting data from OSM for {place_name}")
-    coords = get_osm_search_coords(check_osm_response(get_osm_search_response(place_name)))
-    logger.info("DONE")
+    
+    if place_name == "":
+        logger.info(f"No place name provided for OSM. Using defaults.")
+        place_name = "The default coordinates"
+        coords = (LAT, LON, place_name)
+    else:
+        logger.info(f"Getting data from OSM for {place_name}")
+        osm_search_response = get_osm_search_response(place_name)
+        osm_response_json = check_osm_response(osm_search_response)
+        coords = get_osm_search_coords(osm_response_json)
+        logger.info("DONE")
+
     logger.info(f"Getting data from N2YO for {place_name}")
-    n2yo_response = check_n2yo_response(get_n2yo_response(coords[0], coords[1]))
+    n2yo_response = get_n2yo_response(N2YO_API_URL, NORAD_ID, coords[0], coords[1], ALT, DAYS, VISIBILITY, N2YO_API_KEY)
+    n2yo_response_json = check_n2yo_response(n2yo_response)
     logger.info("DONE")
+
     print("\n\nVisual Passes Response:")
-    print_passes(n2yo_response, coords[2])
+    print_passes(n2yo_response_json, coords[2])
     # print(coords, place_name)
