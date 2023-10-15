@@ -2,4 +2,10 @@ config.ini
 confidential.txt
 log/*
 !log/.gitkeep
+
+# Example files
 migrations_ex/*
+log_migrate_db.yaml.dev
+log_migrate_db.yaml.prod
+log_worker.yaml.prod
+worker.py
