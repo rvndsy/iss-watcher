@@ -30,6 +30,33 @@ def get_cursor():
 		connection.commit()
 	return connection.cursor()
 
+# Check if similar iss pass data exists in db
+def mysql_check_if_iss_pass_exists_in_db(pass_start_utc):
+	records = []
+	cursor = get_cursor()
+	try:
+		cursor = connection.cursor()
+		result  = cursor.execute("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = ", str(pass_start_utc))
+		records = cursor.fetchall()
+		connection.commit()
+	except Error as e :
+		logger.error("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = ", str(pass_start_utc))
+		logger.error('Problem checking if iss pass exists: ' + str(e))
+		pass
+	return records[0][0]
+
+# ISS pass record value insert
+def mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, start_utc, end_utc, duration, norad_id):
+	cursor = get_cursor()
+	try:
+		cursor = connection.cursor()
+		result  = cursor.execute( "INSERT INTO `iss_pass_records` (`place_name`, `place_lat`, `place_lon`, `start_utc`, `end_utc`, `duration`, `norad_id`) VALUES ('" + str(place_name) + "', '" + str(place_lat) + "', '" + str(place_lon) + "', '" + str(start_utc) + "', '" + str(end_utc) + "', '" + str(duration) + "', '" + str(norad_id) + "')")
+		connection.commit()
+	except Error as e :
+		logger.error( "INSERT INTO `iss_pass_records` (`place_name`, `place_lat`, `place_lon`, `start_utc`, `end_utc`, `duration`, `norad_id`) VALUES ('" + str(place_name) + "', '" + str(place_lat) + "', '" + str(place_lon) + "', '" + str(start_utc) + "', '" + str(end_utc) + "', '" + str(duration) + "', '" + str(norad_id) + "')")
+		logger.error('Problem inserting asteroid values into DB: ' + str(e))
+		pass
+
 #
 #   URL getting and json processing:
 #
@@ -117,7 +144,16 @@ def print_passes(response_json, full_place_name):
     print(f"ISS will be visible at \"{full_place_name}\" at these times:")
     for event in response_json['passes']:
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
-        print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")
+        print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")    
+
+def db_insert_values_from_json(response_json, place_lat, place_lon, place_name):
+    # Check for 0 visual passes at location
+    if 'info' in response_json and response_json['info']['passescount'] == 0:
+        return
+    else:
+        norad_id = response_json['info']['satid']
+        for event in response_json['passes']:
+            mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, event['startUTC'], event['endUTC'], event['duration'], norad_id)
 
 if __name__ == "__main__":
 
@@ -182,6 +218,8 @@ if __name__ == "__main__":
     n2yo_response = get_n2yo_response(N2YO_API_URL, NORAD_ID, coords[0], coords[1], ALT, DAYS, VISIBILITY, N2YO_API_KEY)
     n2yo_response_json = check_n2yo_response(n2yo_response)
     logger.info("DONE")
+
+    db_insert_values_from_json(n2yo_response_json, coords[0], coords[1], coords[2])
 
     print("\n\nVisual Passes Response:")
     print_passes(n2yo_response_json, coords[2])
