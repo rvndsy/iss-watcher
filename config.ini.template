@@ -13,3 +13,9 @@ longitude = 25.42826
 altitude = 45
 visibility = 60
 prediction_days = 10
+
+[mysql_config]
+mysql_host = 127.0.0.1
+mysql_db = iss_watcher
+mysql_user = root
+mysql_pass = root
