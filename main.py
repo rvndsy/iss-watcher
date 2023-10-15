@@ -131,11 +131,13 @@ if __name__ == "__main__":
     ## Get visual passes for ISS. Print out received information.
     # response = get_response()
     # print(response, "\n")
-    place_name = "Riga"
-    print(f"Getting data from OSM for {place_name}")
+    place_name = "Valmiera"
+    logger.info(f"Getting data from OSM for {place_name}")
     coords = get_osm_search_coords(check_osm_response(get_osm_search_response(place_name)))
-    print(f"Getting data from N2YO for {place_name}")
+    logger.info("DONE")
+    logger.info(f"Getting data from N2YO for {place_name}")
     n2yo_response = check_n2yo_response(get_n2yo_response(coords[0], coords[1]))
+    logger.info("DONE")
     print("\n\nVisual Passes Response:")
     print_passes(n2yo_response, coords[2])
     # print(coords, place_name)
