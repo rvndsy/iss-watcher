@@ -1,0 +1,1 @@
+ALTER TABLE iss_pass_records ADD COLUMN norad_id int(6) NOT NULL;
