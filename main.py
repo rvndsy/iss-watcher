@@ -30,7 +30,7 @@ def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N
     logger.debug(f"get_n2yo_response() got response {response}")
     return response
 
-def get_osm_search_response(place_name):
+def get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER):
     url = f"{OSM_API_URL}search.php?q={place_name}&format={OSM_JSON_VER}"
     logger.info(f"OSM get_request url: {url}")
     response = requests.get(url)
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         coords = (LAT, LON, place_name)
     else:
         logger.info(f"Getting data from OSM for {place_name}")
-        osm_search_response = get_osm_search_response(place_name)
+        osm_search_response = get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER)
         osm_response_json = check_osm_response(osm_search_response)
         coords = get_osm_search_coords(osm_response_json)
         logger.info("DONE")
