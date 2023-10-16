@@ -30,20 +30,22 @@ def get_cursor():
 		connection.commit()
 	return connection.cursor()
 
+
 # Check if similar iss pass data exists in db
-def mysql_check_if_iss_pass_exists_in_db(pass_start_utc):
-	records = []
-	cursor = get_cursor()
-	try:
-		cursor = connection.cursor()
-		result  = cursor.execute("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = ", str(pass_start_utc))
-		records = cursor.fetchall()
-		connection.commit()
-	except Error as e :
-		logger.error("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = ", str(pass_start_utc))
-		logger.error('Problem checking if iss pass exists: ' + str(e))
-		pass
-	return records[0][0]
+def mysql_check_if_iss_pass_exists_in_db(pass_start_utc, place_name):
+    records = []
+    cursor = get_cursor()
+    try:
+        cursor = connection.cursor()
+        result  = cursor.execute("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = " + str(pass_start_utc) + " AND `place_name` = '" + str(place_name) + "'")
+        logger.debug("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = " + str(pass_start_utc) + " AND `place_name` = '" + str(place_name) + "'")
+        records = cursor.fetchall()
+        connection.commit()
+    except Error as e :
+        logger.error("SELECT count(*) FROM iss_pass_records WHERE `start_utc` = " + str(pass_start_utc) + " AND `place_name` = '" + str(place_name) + "'")
+        logger.error('Problem checking if iss pass exists: ' + str(e))
+        pass
+    return records[0][0]
 
 # ISS pass record value insert
 def mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, start_utc, end_utc, duration, norad_id):
@@ -54,8 +56,17 @@ def mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, start_utc, e
 		connection.commit()
 	except Error as e :
 		logger.error( "INSERT INTO `iss_pass_records` (`place_name`, `place_lat`, `place_lon`, `start_utc`, `end_utc`, `duration`, `norad_id`) VALUES ('" + str(place_name) + "', '" + str(place_lat) + "', '" + str(place_lon) + "', '" + str(start_utc) + "', '" + str(end_utc) + "', '" + str(duration) + "', '" + str(norad_id) + "')")
-		logger.error('Problem inserting asteroid values into DB: ' + str(e))
+		logger.error('Problem inserting ISS pass values into DB: ' + str(e))
 		pass
+
+# Push ISS pass records into DB, while checking if they already do exist
+def push_iss_pass_to_db(place_name, pass_array):
+    for iss_pass in pass_array:
+        if mysql_check_if_iss_pass_exists_in_db(pass_array[2], place_name) == 0:
+            logger.debug("ISS pass NOT in db")
+            mysql_insert_iss_pass_into_db(place_name, pass_array[0], pass_array[1], pass_array[2], pass_array[3], pass_array[4], pass_array[5])
+        else:
+            logger.debug("ISS pass already IN DB")
 
 #
 #   URL getting and json processing:
@@ -153,12 +164,13 @@ def db_insert_values_from_json(response_json, place_lat, place_lon, place_name):
     else:
         norad_id = response_json['info']['satid']
         for event in response_json['passes']:
-            mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, event['startUTC'], event['endUTC'], event['duration'], norad_id)
+            pass_array = (place_lat, place_lon, event['startUTC'], event['endUTC'], event['duration'], norad_id)
+            push_iss_pass_to_db(place_name, pass_array)
 
 if __name__ == "__main__":
 
     # Loading logging configuration
-    with open('./log_main.yaml', 'r') as stream:
+    with open('./log_main.yaml.dev', 'r') as stream:
         config = yaml.safe_load(stream)
     logging.config.dictConfig(config)
     logger = logging.getLogger('root')
