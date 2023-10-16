@@ -137,7 +137,7 @@ def get_osm_search_coords(response_json):
         display_name = data.get('display_name', 'null')
         # In case of no longitude or no lattitude values provided. Default config values are used.
         if lat == None or lon == None:
-            logger.info("No latitude or longitude value gotten. Defaulting to 'Valmiera' coordinates")
+            logger.info("No latitude or longitude value gotten. Using the default coordinates")
             lat=LAT
             lon=LON
             display_name="Valmiera (defaulted)"
