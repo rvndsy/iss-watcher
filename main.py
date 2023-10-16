@@ -85,7 +85,7 @@ def check_internet_connection():
             time.sleep(5)
             pass
 
-# Prepares and requests URL to get visual passes from n2yo
+# Prepares and get requests URL to get visual passes from N2YO
 def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N2YO_API_KEY):
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
     logger.info(f"N2YO get_request url: {url}")
@@ -93,6 +93,7 @@ def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N
     logger.debug(f"get_n2yo_response() got response {response}")
     return response
 
+# Prepares and get requests URL to get visual passes from OSM
 def get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER):
     url = f"{OSM_API_URL}search.php?q={place_name}&format={OSM_JSON_VER}"
     logger.info(f"OSM get_request url: {url}")
@@ -108,6 +109,7 @@ def check_n2yo_response(response):
     logger.debug(f"check_n2yo_response() retrieved json of length: {len(response.json())}")
     return response.json()
 
+# Check if URL response returned without error and return the json of response
 def check_osm_response(response):
     if response.status_code != 200:
         logger.info(f"Error code {response.status_code} from OSM API URL")
@@ -115,6 +117,7 @@ def check_osm_response(response):
     logger.debug(f"check_osm_response() retrieved json of length: {len(response.json())}")
     return response.json()
 
+# Get array with latitude, longitude and place name from OSM json response. If response isn't valid - use config default values.
 def get_osm_search_coords(response_json):
     display_name = None
     lat = None
@@ -135,7 +138,7 @@ def get_osm_search_coords(response_json):
             logger.debug("get_osm_search_coords() failed to convert lon to float, overwriting value as None")
             lon = None
         display_name = data.get('display_name', 'null')
-        # In case of no longitude or no lattitude values provided. Default config values are used.
+        # In case of no longitude or no latitude values provided. Default config values are used.
         if lat == None or lon == None:
             logger.info("No latitude or longitude value gotten. Using the default coordinates")
             lat=LAT
@@ -157,6 +160,8 @@ def print_passes(response_json, full_place_name):
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
         print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")    
 
+# Take values from json response and the coords array and push into db. 
+# The 3 values in coords array are separated in case default values are used.
 def db_insert_values_from_json(response_json, place_lat, place_lon, place_name):
     # Check for 0 visual passes at location
     if 'info' in response_json and response_json['info']['passescount'] == 0:
@@ -194,7 +199,7 @@ if __name__ == "__main__":
         OSM_JSON_VER = config.get('osm', 'api_json_ver')
         # Norad id for satellite. 25544 = ISS
         NORAD_ID = config.get('user', 'norad_id')
-        # Observer data: decimal degrees - LATitude, LONgitude; meters - elevation. Default is ViA university.
+        # Default observer data: LATitude and LONgitude are float values; ALT - elevation in meters as int value.
         LAT = config.get('user', 'latitude')
         LON = config.get('user', 'longitude')
         ALT = config.get('user', 'altitude')
@@ -207,14 +212,14 @@ if __name__ == "__main__":
     logger.info('DONE')
 
     check_internet_connection()
-    ## Get visual passes for ISS. Print out received information.
-    # response = get_response()
-    # print(response, "\n")
 
+    # Initiate DB connection
     init_db()
     
+    # Place for which to get coords from OSM
     place_name = "Valmiera"
     
+    # If no place provided - use config default coordinates. Else get coords from OSM.
     if place_name == "":
         logger.info(f"No place name provided for OSM. Using defaults.")
         place_name = "The default coordinates"
@@ -226,13 +231,16 @@ if __name__ == "__main__":
         coords = get_osm_search_coords(osm_response_json)
         logger.info("DONE")
 
+    # Getting request from N2YO
     logger.info(f"Getting data from N2YO for {place_name}")
     n2yo_response = get_n2yo_response(N2YO_API_URL, NORAD_ID, coords[0], coords[1], ALT, DAYS, VISIBILITY, N2YO_API_KEY)
     n2yo_response_json = check_n2yo_response(n2yo_response)
     logger.info("DONE")
 
+    # Inserting the gotten values from N2YO into the DB.
     db_insert_values_from_json(n2yo_response_json, coords[0], coords[1], coords[2])
 
+    # Finally print the visible passes of the satellite
     print("\n\nVisual Passes Response:")
     print_passes(n2yo_response_json, coords[2])
     # print(coords, place_name)
