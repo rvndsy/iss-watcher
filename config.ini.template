@@ -7,6 +7,7 @@ api_url = https://nominatim.openstreetmap.org/
 api_json_ver = jsonv2
 
 [user]
+place_name = Valmiera
 norad_id = 25544
 latitude = 57.54161
 longitude = 25.42826

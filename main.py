@@ -197,6 +197,8 @@ if __name__ == "__main__":
 
         OSM_API_URL = config.get('osm', 'api_url')
         OSM_JSON_VER = config.get('osm', 'api_json_ver')
+        # Place for which to get coords from OSM
+        PLACE_NAME = config.get('user', 'place_name')
         # Norad id for satellite. 25544 = ISS
         NORAD_ID = config.get('user', 'norad_id')
         # Default observer data: LATitude and LONgitude are float values; ALT - elevation in meters as int value.
@@ -216,23 +218,20 @@ if __name__ == "__main__":
     # Initiate DB connection
     init_db()
     
-    # Place for which to get coords from OSM
-    place_name = "Valmiera"
-    
     # If no place provided - use config default coordinates. Else get coords from OSM.
-    if place_name == "":
+    if PLACE_NAME == "":
         logger.info(f"No place name provided for OSM. Using defaults.")
-        place_name = "The default coordinates"
-        coords = (LAT, LON, place_name)
+        PLACE_NAME = "The default coordinates"
+        coords = (LAT, LON, PLACE_NAME)
     else:
-        logger.info(f"Getting data from OSM for {place_name}")
-        osm_search_response = get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER)
+        logger.info(f"Getting data from OSM for {PLACE_NAME}")
+        osm_search_response = get_osm_search_response(OSM_API_URL, PLACE_NAME, OSM_JSON_VER)
         osm_response_json = check_osm_response(osm_search_response)
         coords = get_osm_search_coords(osm_response_json)
         logger.info("DONE")
 
     # Getting request from N2YO
-    logger.info(f"Getting data from N2YO for {place_name}")
+    logger.info(f"Getting data from N2YO for {PLACE_NAME}")
     n2yo_response = get_n2yo_response(N2YO_API_URL, NORAD_ID, coords[0], coords[1], ALT, DAYS, VISIBILITY, N2YO_API_KEY)
     n2yo_response_json = check_n2yo_response(n2yo_response)
     logger.info("DONE")
@@ -243,4 +242,4 @@ if __name__ == "__main__":
     # Finally print the visible passes of the satellite
     print("\n\nVisual Passes Response:")
     print_passes(n2yo_response_json, coords[2])
-    # print(coords, place_name)
+    # print(coords, PLACE_NAME)
