@@ -10,13 +10,13 @@ print("Configuration file test")
 # Testing if configuration file exists on disk in the current working directory
 print("----------")
 print("Checking if config file exists -->")
-assert os.path.isfile("../config.ini") == True
+assert os.path.isfile("config.ini") == True
 print("OK")
 print("----------")
 
 # Opening the configuration file
 config = ConfigParser()
-config.read('../config.ini')
+config.read('config.ini')
 
 # Checking if all OSM related config options are present in the config file
 print("Checking if config has NASA related options -->")
@@ -91,19 +91,19 @@ print("----------")
 
 # Checking if log config files exist for log config
 print("Checking if DB migration component log config file exists log_migrate_db.yaml -->")
-assert os.path.isfile("../log_migrate_db.yaml") == True
+assert os.path.isfile("log_migrate_db.yaml") == True
 print("OK")
 print("----------")
 print("Checking if main.py component log config file exists log_worker.yaml -->")
-assert os.path.isfile("../log_main.yaml") == True
+assert os.path.isfile("log_main.yaml") == True
 print("OK")
 print("----------")
 print("Checking if log destination directory exists -->")
-assert os.path.isdir("../log") == True
+assert os.path.isdir("log") == True
 print("OK")
 print("----------")
 print("Checking if migration source directory exists -->")
-assert os.path.isdir("../migrations") == True
+assert os.path.isdir("migrations") == True
 print("OK")
 print("----------")
 print("Configuration file test DONE -> ALL OK")
