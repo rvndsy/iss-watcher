@@ -2,7 +2,7 @@ from main import *
 
 print("iss-watcher main.py test")
 print("----------")
-print("Testing function: \"sort_ast_by_pass_dist\"")
+print("Testing function: \"get_osm_search_coords\"")
 # Testing passing empty asteroids list
 print("Empty asteroids list [] -->")
 assert sort_ast_by_pass_dist([]) == []
