@@ -181,7 +181,7 @@ def db_insert_values_from_json(response_json, place_lat, place_lon, place_name):
 if __name__ == "__main__":
 
     # Loading logging configuration
-    with open('./log_main.yaml.dev', 'r') as stream:
+    with open('./log_main.yaml', 'r') as stream:
         config = yaml.safe_load(stream)
     logging.config.dictConfig(config)
     logger = logging.getLogger('root')
