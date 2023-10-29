@@ -1,5 +1,5 @@
 #!/bin/bash
-sec_secret_storage_loc="/my_secret_files"
+sec_secret_storage_loc="../my_secret_files/iss-watcher"
 
 echo "Script for preparing the development environment"
 echo "------------------------------------------------"
@@ -14,13 +14,13 @@ else
 fi
 echo "------------------------------------------------"
 
-echo "Checking if log_worker.yaml exists in the current working dir -->"
-if test -f "log_worker.yaml"; then
+echo "Checking if log_main.yaml exists in the current working dir -->"
+if test -f "log_main.yaml"; then
     echo "exists"
 else
-	echo "Copying log config file from local dev template log_worker.yaml.dev"
-	cp log_worker.yaml.dev log_worker.yaml
-	if [ $? -eq 0 ]; then echo "OK"; else echo "Problem copying log_worker.yaml file"; exit 1; fi
+	echo "Copying log config file from local dev template log_main.yaml.dev"
+	cp log_main.yaml.dev log_main.yaml
+	if [ $? -eq 0 ]; then echo "OK"; else echo "Problem copying log_main.yaml file"; exit 1; fi
 fi
 echo "------------------------------------------------"
 
@@ -34,9 +34,9 @@ else
 fi
 echo "------------------------------------------------"
 
-echo "Getting python3 executable loc"
-python_exec_loc=$(which python3)
-if [ $? -eq 0 ]; then echo "OK"; else echo "Problem getting python3 exec location"; exit 1; fi
+echo "Getting python executable loc"
+python_exec_loc=$(which python)
+if [ $? -eq 0 ]; then echo "OK"; else echo "Problem getting python exec location"; exit 1; fi
 echo "$python_exec_loc"
 echo "------------------------------------------------"
 
@@ -50,11 +50,11 @@ $python_exec_loc migrate_db.py
 if [ $? -eq 0 ]; then echo "OK"; else echo "DB migration FAILED"; exit 1; fi
 echo "------------------------------------------------"
 
-echo "Running asteroid worker tests"
-$python_exec_loc test_worker.py
+echo "Running test_main_get_osm_search_coords test"
+$python_exec_loc test_main_get_osm_search_coords.py
 if [ $? -eq 0 ]; then echo "OK"; else echo "Worker test FAILED"; exit 1; fi
 echo "------------------------------------------------"
 
 echo "ALL SET UP! YOU ARE READY TO CODE"
 echo "to start the program, execute:"
-echo "$python_exec_loc worker_2_db.py"
+echo "$python_exec_loc main.py"
