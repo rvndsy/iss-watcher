@@ -11,6 +11,11 @@ from datetime import datetime
 from configparser import ConfigParser
 from mysql.connector import Error
 
+# Disable logger in tests
+def disable_logging_during_tests():
+    logger = logging.getLogger('root')
+    logging.getLogger(__name__).disabled = True
+
 #
 #   DB stuff:
 #
@@ -120,7 +125,7 @@ def check_osm_response(response):
 # Get array with latitude, longitude and place name from OSM json response. If response isn't valid - use config default values.
 def get_osm_search_coords(response_json):
     display_name = None
-    lat = None
+    lat = None  
     lon = None
     if len(response_json) > 0:
         data = response_json[0]
@@ -147,6 +152,7 @@ def get_osm_search_coords(response_json):
         return (lat, lon, display_name)
     else:
         logger.info("OSM response is empty")
+        return (-200, -200, "null")
     
 # Print out a list of satellite passes in a human readable format
 def print_passes(response_json, full_place_name):

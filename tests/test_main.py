@@ -1,35 +1,50 @@
+import sys, os
+import unittest
+from unittest.mock import patch
+import logging
+
+# Changed the directory to the parent of the current tests folder.
+
+parent_directory_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(1, parent_directory_path)
+
+import main
 from main import *
 
-print("iss-watcher main.py test")
-print("----------")
-print("Testing function: \"get_osm_search_coords\"")
-# Testing passing empty asteroids list
-print("Empty asteroids list [] -->")
-assert sort_ast_by_pass_dist([]) == []
-print("OK")
-print("----------")
+# Using unittest instead of provided example because I wanted to experiment with unittests and I ran into issues with 'logger' from main.
+# This test creates mock object for the logger so that 'logger.info(xyz)' lines can be ignored.
 
-# Testing if the sorting by distance of the list is done properly
-print("Actual list good data, checking if sorting is correct -->")
-list_unsorted = [['(2001 UP)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3092390', 0.019, 0.043, 1634131860, '2021-10-13 13:31:00', '2021-10-13 16:31:00', 64502, 48658232.921, '3092390'], ['(2008 SY150)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3428531', 0.031, 0.068, 1634091000, '2021-10-13 02:10:00', '2021-10-13 05:10:00', 56440, 38212310.608, '3428531'], ['(2014 KA91)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3673167', 0.021, 0.047, 1634090220, '2021-10-13 01:57:00', '2021-10-13 04:57:00', 20714, 24287902.734, '3673167'], ['(2018 VF4)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3836100', 0.023, 0.052, 1634124480, '2021-10-13 11:28:00', '2021-10-13 14:28:00', 40740, 31043596.356, '3836100'], ['(2019 SW8)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3873141', 0.019, 0.043, 1634141940, '2021-10-13 16:19:00', '2021-10-13 19:19:00', 58537, 53322355.414, '3873141'], ['(2019 UN3)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3879314', 0.038, 0.086, 1634134440, '2021-10-13 14:14:00', '2021-10-13 17:14:00', 75414, 41458428.073, '3879314'], ['(2020 UC4)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54076013', 0.016, 0.036, 1634137920, '2021-10-13 15:12:00', '2021-10-13 18:12:00', 72466, 57148313.415, '54076013'], ['(2021 CT1)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54110078', 0.023, 0.052, 1634111400, '2021-10-13 07:50:00', '2021-10-13 10:50:00', 20075, 30951757.236, '54110078'], ['(2021 SF2)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54200444', 0.036, 0.081, 1634095860, '2021-10-13 03:31:00', '2021-10-13 06:31:00', 11236, 31510633.785, '54200444'], ['(2021 TO)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54201815', 0.038, 0.086, 1634147220, '2021-10-13 17:47:00', '2021-10-13 20:47:00', 25391, 11816672.875, '54201815'], ['(2021 TG3)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54203028', 0.038, 0.084, 1634095140, '2021-10-13 03:19:00', '2021-10-13 06:19:00', 20902, 31189940.442, '54203028'], ['(2021 TX10)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54208049', 0.007, 0.017, 1634126280, '2021-10-13 11:58:00', '2021-10-13 14:58:00', 31032, 942082.384, '54208049']]
-list_sorted_by_dist = [['(2021 TX10)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54208049', 0.007, 0.017, 1634126280, '2021-10-13 11:58:00', '2021-10-13 14:58:00', 31032, 942082.384, '54208049'], ['(2021 TO)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54201815', 0.038, 0.086, 1634147220, '2021-10-13 17:47:00', '2021-10-13 20:47:00', 25391, 11816672.875, '54201815'], ['(2014 KA91)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3673167', 0.021, 0.047, 1634090220, '2021-10-13 01:57:00', '2021-10-13 04:57:00', 20714, 24287902.734, '3673167'], ['(2021 CT1)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54110078', 0.023, 0.052, 1634111400, '2021-10-13 07:50:00', '2021-10-13 10:50:00', 20075, 30951757.236, '54110078'], ['(2018 VF4)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3836100', 0.023, 0.052, 1634124480, '2021-10-13 11:28:00', '2021-10-13 14:28:00', 40740, 31043596.356, '3836100'], ['(2021 TG3)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54203028', 0.038, 0.084, 1634095140, '2021-10-13 03:19:00', '2021-10-13 06:19:00', 20902, 31189940.442, '54203028'], ['(2021 SF2)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54200444', 0.036, 0.081, 1634095860, '2021-10-13 03:31:00', '2021-10-13 06:31:00', 11236, 31510633.785, '54200444'], ['(2008 SY150)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3428531', 0.031, 0.068, 1634091000, '2021-10-13 02:10:00', '2021-10-13 05:10:00', 56440, 38212310.608, '3428531'], ['(2019 UN3)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3879314', 0.038, 0.086, 1634134440, '2021-10-13 14:14:00', '2021-10-13 17:14:00', 75414, 41458428.073, '3879314'], ['(2001 UP)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3092390', 0.019, 0.043, 1634131860, '2021-10-13 13:31:00', '2021-10-13 16:31:00', 64502, 48658232.921, '3092390'], ['(2019 SW8)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3873141', 0.019, 0.043, 1634141940, '2021-10-13 16:19:00', '2021-10-13 19:19:00', 58537, 53322355.414, '3873141'], ['(2020 UC4)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54076013', 0.016, 0.036, 1634137920, '2021-10-13 15:12:00', '2021-10-13 18:12:00', 72466, 57148313.415, '54076013']]
-assert sort_ast_by_pass_dist(list_unsorted) == list_sorted_by_dist
-print("OK")
-print("----------")
+class TestGetOsmSearchCoords(unittest.TestCase):
 
-# Testing when providing list with elements of various index length
-print("Data with various index length -->")
-list_unsorted_various_index = [['(2001 UP)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3092390', 0.019, 0.043, 1634131860, '2021-10-13 13:31:00', '2021-10-13 16:31:00', 64502, 48658232.921], ['(2008 SY150)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3428531', 0.031, 0.068, 1634091000, '2021-10-13 02:10:00', '2021-10-13 05:10:00', 56440, 38212310.608, '3428531'], ['(2014 KA91)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3673167', 0.021, 0.047, 1634090220, '2021-10-13 01:57:00', '2021-10-13 04:57:00', 20714, 24287902.734, '3673167'], ['(2018 VF4)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3836100', 0.023, 0.052, 1634124480, '2021-10-13 11:28:00', '2021-10-13 14:28:00', 40740, 31043596.356, '3836100'], ['(2019 SW8)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3873141', 0.019, 0.043, 1634141940, '2021-10-13 16:19:00', '2021-10-13 19:19:00', 58537, 53322355.414, '3873141'], ['(2019 UN3)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3879314', 0.038, 0.086, 1634134440, '2021-10-13 14:14:00', '2021-10-13 17:14:00', 75414, 41458428.073, '3879314'], ['(2020 UC4)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54076013', 0.016, 0.036, 1634137920, '2021-10-13 15:12:00', '2021-10-13 18:12:00', 72466, 57148313.415, '54076013'], ['(2021 CT1)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54110078', 0.023, 0.052, 1634111400, '2021-10-13 07:50:00', '2021-10-13 10:50:00', 20075, 30951757.236, '54110078'], ['(2021 SF2)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54200444', 0.036, 0.081, 1634095860, '2021-10-13 03:31:00', '2021-10-13 06:31:00', 11236, 31510633.785, '54200444'], ['(2021 TO)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54201815', 0.038, 0.086, 1634147220, '2021-10-13 17:47:00', '2021-10-13 20:47:00', 25391, 11816672.875, '54201815'], ['(2021 TG3)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54203028', 0.038, 0.084, 1634095140, '2021-10-13 03:19:00', '2021-10-13 06:19:00', 20902, 31189940.442, '54203028'], ['(2021 TX10)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=54208049', 0.007, 0.017, 1634126280, '2021-10-13 11:58:00', '2021-10-13 14:58:00', 31032, 942082.384, '54208049']]
-assert sort_ast_by_pass_dist(list_unsorted_various_index) == []
-print("OK")
-print("----------")
+    def test_empty_response(self):
+        # Testing an empty json into get_osm_search_coords
+        with patch('main.logger', create=True):
+            response_json = []
+            result = get_osm_search_coords(response_json)
+            expected_result = (-200, -200, 'null')
+            self.assertEqual(result, expected_result)
 
-# Testing when providing list with a shorter index length then expected
-print("Data with short index length -->")
-list_unsorted_index_short = [['(2001 UP)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3092390', 0.043, 1634131860, '2021-10-13 13:31:00', '2021-10-13 16:31:00', 64502, 48658232.921, '3092390'], ['(2008 SY150)', 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=3428531', 0.031, 0.068, 1634091000, '2021-10-13 02:10:00', '2021-10-13 05:10:00', 56440, 38212310.608]]
-assert sort_ast_by_pass_dist(list_unsorted_index_short) == []
-print("OK")
-print("----------")
+    def test_minimal_response(self):
+        # Testing as minimal as possible json into get_osm_search_coords
+        with patch('main.logger', create=True):
+            # Testing 
+            response_json = [{'lat': '56.646', 'lon': '24.804', 'display_name': 'Valmiera, Latvia'}]
+            result = get_osm_search_coords(response_json)
+            expected_result = (56.646, 24.804, 'Valmiera, Latvia')
+            self.assertEqual(result, expected_result)
 
-print("Asteroid worker test -> ALL OK")
-print("----------------------------------------")
+    def test_valid_response(self):
+        # Testing a real response json into get_osm_search_coords
+        with patch('main.logger', create=True):
+            response_json = [{"place_id":182904349,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"relation","osm_id":13048680,"lat":"57.5389148","lon":"25.4261688","category":"boundary","type":"administrative","place_rank":14,"importance":0.5170003199625869,"addresstype":"city","name":"Valmiera","display_name":"Valmiera, Valmieras novads, Vidzeme, Latvia","boundingbox":["57.4974929","57.5551153","25.3746416","25.4677580"]}]
+            result = get_osm_search_coords(response_json)
+            expected_result = (57.5389148, 25.4261688, 'Valmiera, Valmieras novads, Vidzeme, Latvia')
+            self.assertEqual(result, expected_result)
+
+if __name__ == '__main__':
+    print("Testing function: \"get_osm_search_coords\"")
+
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromTestCase(TestGetOsmSearchCoords)
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
