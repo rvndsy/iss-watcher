@@ -41,7 +41,7 @@ echo "$python_exec_loc"
 echo "------------------------------------------------"
 
 echo "Running config tests"
-$python_exec_loc test_config.py
+$python_exec_loc tests/test_config.py
 if [ $? -eq 0 ]; then echo "OK"; else echo "Configuration test FAILED"; exit 1; fi
 echo "------------------------------------------------"
 
@@ -51,7 +51,7 @@ if [ $? -eq 0 ]; then echo "OK"; else echo "DB migration FAILED"; exit 1; fi
 echo "------------------------------------------------"
 
 echo "Running test_main_get_osm_search_coords test"
-$python_exec_loc test_main_get_osm_search_coords.py
+$python_exec_loc tests/test_main_get_osm_search_coords.py
 if [ $? -eq 0 ]; then echo "OK"; else echo "Worker test FAILED"; exit 1; fi
 echo "------------------------------------------------"
 
