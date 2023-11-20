@@ -19,21 +19,21 @@ config = ConfigParser()
 config.read('config.ini')
 
 # Checking if all OSM related config options are present in the config file
-print("Checking if config has NASA related options -->")
+print("Checking if config has OSM related options -->")
 assert config.has_option('osm', 'api_url') == True
 assert config.has_option('osm', 'api_json_ver') == True
 print("OK")
 print("----------")
 
 # Checking if all N2YO related config options are present in the config file
-print("Checking if config has NASA related options -->")
+print("Checking if config has N2YO related options -->")
 assert config.has_option('n2yo', 'api_key') == True
 assert config.has_option('n2yo', 'api_url') == True
 print("OK")
 print("----------")
 
 # Checking if all default user related config options are present in the config file
-print("Checking if config has NASA related options -->")
+print("Checking if config has user default options -->")
 assert config.has_option('user', 'place_name') == True
 assert config.has_option('user', 'norad_id') == True
 assert config.has_option('user', 'latitude') == True
