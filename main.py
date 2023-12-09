@@ -1,3 +1,11 @@
+#
+#   This python program (constructor) is for getting the times and dates when the International Space Station (ISS)
+#   will visibly fly over your provided location. Location can be provided as a place name in the config file, or
+#   as a set of coordinates. API's used are provided by - https://www.openstreetmap.org/ and https://www.n2yo.com/.
+#   The DB is in MySQL (or in my case MariaDB, the SQL should be cross-compatible).
+#   The objective of this program is not to be a full-fledged product. It was made for a university course to 
+#   practice code testing, database migrations, logging, using config files, automatization.
+# 
 import logging
 import logging.config
 import mysql.connector
@@ -17,13 +25,16 @@ def disable_logging_during_tests():
     logging.getLogger(__name__).disabled = True
 
 #
-#   DB stuff:
+#   DB stuff:   The program can theoretically work without a database but it is not made for that right now. 
+#               It was deemed necessary to use a database for the course, so here it is.
 #
 
+# Is used in getting the cursor and checking if database is available
 def init_db():
 	global connection
 	connection = mysql.connector.connect(host=mysql_config_mysql_host, database=mysql_config_mysql_db, user=mysql_config_mysql_user, password=mysql_config_mysql_pass)
 
+# Need a db cursor to do all the queries on the database
 def get_cursor():
 	global connection
 	try:
@@ -35,8 +46,7 @@ def get_cursor():
 		connection.commit()
 	return connection.cursor()
 
-
-# Check if similar iss pass data exists in db
+# Using place_name and start_utc values to check for duplicate ISS passover entries in db.
 def mysql_check_if_iss_pass_exists_in_db(pass_start_utc, place_name):
     records = []
     cursor = get_cursor()
@@ -52,7 +62,7 @@ def mysql_check_if_iss_pass_exists_in_db(pass_start_utc, place_name):
         pass
     return records[0][0]
 
-# ISS pass record value insert
+# Storing ISS passes into databases. Not required for core functionality.
 def mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, start_utc, end_utc, duration, norad_id):
 	cursor = get_cursor()
 	try:
@@ -74,7 +84,7 @@ def push_iss_pass_to_db(place_name, pass_array):
             logger.debug("ISS pass already IN DB")
 
 #
-#   URL getting and json processing:
+#   URL getting and JSON processing:
 #
 
 # Check if internet connection exists on device
@@ -90,7 +100,8 @@ def check_internet_connection():
             time.sleep(5)
             pass
 
-# Prepares and get requests URL to get visual passes from N2YO
+# Returned response includes information about visible ISS flyovers in the near future (about a month?).
+# The response is in JSON. The response can be 'empty' - as in no flyovers will happen in the near future.
 def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N2YO_API_KEY):
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
     logger.info(f"N2YO get_request url: {url}")
@@ -98,7 +109,7 @@ def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N
     logger.debug(f"get_n2yo_response() got response {response}")
     return response
 
-# Prepares and get requests URL to get visual passes from OSM
+# Returns coordinates of a provided place name. The response is in JSON. JSON version is indeed a requirement for this API request.
 def get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER):
     url = f"{OSM_API_URL}search.php?q={place_name}&format={OSM_JSON_VER}"
     logger.info(f"OSM get_request url: {url}")
@@ -106,7 +117,7 @@ def get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER):
     logger.debug(f"get_osm_search_response() got response {response}")
     return response
 
-# Check if URL response returned without error and return the json of response
+# Checking if the N2YO API response returned without any errors.
 def check_n2yo_response(response):
     if response.status_code != 200:
         logger.info(f"Error code {response.status_code} from N2YO API URL")
@@ -114,7 +125,7 @@ def check_n2yo_response(response):
     logger.debug(f"check_n2yo_response() retrieved json of length: {len(response.json())}")
     return response.json()
 
-# Check if URL response returned without error and return the json of response
+# Checking if the OSM API response returned without any errors.
 def check_osm_response(response):
     if response.status_code != 200:
         logger.info(f"Error code {response.status_code} from OSM API URL")
@@ -122,7 +133,8 @@ def check_osm_response(response):
     logger.debug(f"check_osm_response() retrieved json of length: {len(response.json())}")
     return response.json()
 
-# Get array with latitude, longitude and place name from OSM json response. If response isn't valid - use config default values.
+# Extracting useable coordinates from OSM API response. If the response is invalid - then the program reverts to default values.
+# Take note of the returned values if the response is empty.
 def get_osm_search_coords(response_json):
     display_name = None
     lat = None  
@@ -131,7 +143,7 @@ def get_osm_search_coords(response_json):
         data = response_json[0]
         lat_str = data.get('lat', 'null')
         lon_str = data.get('lon', 'null')
-        # Convert the lat & lon strings to floats
+        # Convert the lat & lon strings to floats individually.
         try:
             lat = float(lat_str)
         except ValueError:
@@ -154,22 +166,20 @@ def get_osm_search_coords(response_json):
         logger.info("OSM response is empty")
         return (-200, -200, "null")
     
-# Print out a list of satellite passes in a human readable format
+# Print out a list of satellite passes in a human readable format.
+# Displaying a separate message if there are no passes visible at location!
 def print_passes(response_json, full_place_name):
-    # Check for 0 visual passes at location
     if 'info' in response_json and response_json['info']['passescount'] == 0:
         print(f"No visual passes found at location {full_place_name} for now!")
         return
-    # Print all visible passes
     print(f"ISS will be visible at \"{full_place_name}\" at these times:")
     for event in response_json['passes']:
         date_and_time = datetime.fromtimestamp(event['startUTC']).strftime('%d.%m.%Y %H:%M:%S')
         print(date_and_time, "for", event['endUTC']-event['startUTC'], "seconds")    
 
-# Take values from json response and the coords array and push into db. 
-# The 3 values in coords array are separated in case default values are used.
+# Take values from json response and the coords list and push into db. 
+# The 3 values in coords list are separated in case default values are used.
 def db_insert_values_from_json(response_json, place_lat, place_lon, place_name):
-    # Check for 0 visual passes at location
     if 'info' in response_json and response_json['info']['passescount'] == 0:
         return
     else:
@@ -248,4 +258,3 @@ if __name__ == "__main__":
     # Finally print the visible passes of the satellite
     print("\n\nVisual Passes Response:")
     print_passes(n2yo_response_json, coords[2])
-    # print(coords, PLACE_NAME)
