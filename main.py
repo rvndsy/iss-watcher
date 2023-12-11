@@ -1,7 +1,8 @@
 #
 #   This python program (constructor) is for getting the times and dates when the International Space Station (ISS)
 #   will visibly fly over your provided location. Location can be provided as a place name in the config file, or
-#   as a set of coordinates. API's used are provided by - https://www.openstreetmap.org/ and https://www.n2yo.com/.
+#   as a set of coordinates (leave placename empty). 
+#   API's used are provided by - https://www.openstreetmap.org/ and https://www.n2yo.com/.
 #   The DB is in MySQL (or in my case MariaDB, the SQL should be cross-compatible).
 #   The objective of this program is not to be a full-fledged product. It was made for a university course to 
 #   practice code testing, database migrations, logging, using config files, automatization.
@@ -62,7 +63,7 @@ def mysql_check_if_iss_pass_exists_in_db(pass_start_utc, place_name):
         pass
     return records[0][0]
 
-# Storing ISS passes into databases. Not required for core functionality.
+# Preparaing the SQL statements to insert ISS passes into database. Not required for core functionality.
 def mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, start_utc, end_utc, duration, norad_id):
 	cursor = get_cursor()
 	try:
@@ -74,7 +75,7 @@ def mysql_insert_iss_pass_into_db(place_name, place_lat, place_lon, start_utc, e
 		logger.error('Problem inserting ISS pass values into DB: ' + str(e))
 		pass
 
-# Push ISS pass records into DB, while checking if they already do exist
+# Push ISS pass records into DB, while checking if they already do exist.
 def push_iss_pass_to_db(place_name, pass_array):
     for iss_pass in pass_array:
         if mysql_check_if_iss_pass_exists_in_db(pass_array[2], place_name) == 0:
@@ -109,7 +110,7 @@ def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N
     logger.debug(f"get_n2yo_response() got response {response}")
     return response
 
-# Returns coordinates of a provided place name. The response is in JSON. JSON version is indeed a requirement for this API request.
+# Returns coordinates of a provided place name. JSON version is a must-have requirement for OSM API request.
 def get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER):
     url = f"{OSM_API_URL}search.php?q={place_name}&format={OSM_JSON_VER}"
     logger.info(f"OSM get_request url: {url}")
@@ -134,7 +135,7 @@ def check_osm_response(response):
     return response.json()
 
 # Extracting useable coordinates from OSM API response. If the response is invalid - then the program reverts to default values.
-# Take note of the returned values if the response is empty.
+# `(-200, -200, "null")` must always be the returned values if the response is empty.
 def get_osm_search_coords(response_json):
     display_name = None
     lat = None  
@@ -213,7 +214,7 @@ if __name__ == "__main__":
 
         OSM_API_URL = config.get('osm', 'api_url')
         OSM_JSON_VER = config.get('osm', 'api_json_ver')
-        # Place for which to get coords from OSM
+        # Place for which to get coords from OSM. This is the `user input location` for which coords are fetched. 
         PLACE_NAME = config.get('user', 'place_name')
         # Norad id for satellite. 25544 = ISS
         NORAD_ID = config.get('user', 'norad_id')
@@ -229,6 +230,7 @@ if __name__ == "__main__":
         logger.info('Exception error in loading config')
     logger.info('DONE')
 
+    # Not necessary, just nice-to-have
     check_internet_connection()
 
     # Initiate DB connection
@@ -238,6 +240,7 @@ if __name__ == "__main__":
     if PLACE_NAME == "":
         logger.info(f"No place name provided for OSM. Using defaults.")
         PLACE_NAME = "The default coordinates"
+        # The value order in this list shoud always be `(LAT, LON, PLACE_NAME)`
         coords = (LAT, LON, PLACE_NAME)
     else:
         logger.info(f"Getting data from OSM for {PLACE_NAME}")
