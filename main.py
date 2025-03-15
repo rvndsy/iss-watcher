@@ -106,7 +106,7 @@ def check_internet_connection():
 def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N2YO_API_KEY):
     url = f"{N2YO_API_URL}visualpasses/{NORAD_ID}/{LAT}/{LON}/{ALT}/{DAYS}/{VISIBILITY}&apiKey={N2YO_API_KEY}"
     logger.info(f"N2YO get_request url: {url}")
-    response = requests.get(url)
+    response = requests.get(url, headers=HEADERS)
     logger.debug(f"get_n2yo_response() got response {response}")
     return response
 
@@ -114,7 +114,7 @@ def get_n2yo_response(N2YO_API_URL, NORAD_ID, LAT, LON, ALT, DAYS, VISIBILITY, N
 def get_osm_search_response(OSM_API_URL, place_name, OSM_JSON_VER):
     url = f"{OSM_API_URL}search.php?q={place_name}&format={OSM_JSON_VER}"
     logger.info(f"OSM get_request url: {url}")
-    response = requests.get(url)
+    response = requests.get(url, headers=HEADERS)
     logger.debug(f"get_osm_search_response() got response {response}")
     return response
 
@@ -226,6 +226,9 @@ if __name__ == "__main__":
         VISIBILITY = config.get('user', 'visibility')
         # In days - how far into the future to predict ISS passovers, MAX = 10.
         DAYS = config.get('user', 'prediction_days')
+
+        HEADERS_USER_AGENT = config.get('request_headers', 'user_agent')
+        HEADERS = {'User-Agent': HEADERS_USER_AGENT}
     except:
         logger.info('Exception error in loading config')
     logger.info('DONE')
